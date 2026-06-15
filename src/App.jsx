@@ -39,11 +39,10 @@ export default function App() {
   const [category, setCategory] = useState("all");
   const [selectedBook, setSelectedBook] = useState(null);
 
-  // ÉTATS POUR LA GESTION DES PAGES DU PDF
+  // ÉTAT POUR LA GESTION DES PAGES DU PDF
   const [numPages, setNumPages] = useState(null);
-  const [pageNumber, setPageNumber] = useState(1);
 
-  // Empêche le scroll quand le PDF est ouvert
+  // Empêche le scroll du fond quand le PDF est ouvert
   useEffect(() => {
     if (selectedBook) {
       document.body.style.overflow = "hidden";
@@ -56,9 +55,8 @@ export default function App() {
     };
   }, [selectedBook]);
 
-  // Réinitialise la page à 1 quand on change de livre
+  // Réinitialise le nombre de pages quand on change de livre
   useEffect(() => {
-    setPageNumber(1);
     setNumPages(null);
   }, [selectedBook]);
 
@@ -91,7 +89,7 @@ export default function App() {
             <div className="author-bio">
               <p>
                 Bienvenue sur ce site où vous avez accès à des livres et des articles gratuits
-                ainsi que des projets qui me tiennent à cœur.
+                ains que des projets qui me tiennent à cœur.
               </p>
             </div>
 
@@ -126,13 +124,12 @@ export default function App() {
             {filteredBooks.map((book) => (
               <div key={book.id} className="book-card">
                 {/* COUVERTURE */}
-            <div
-             className="book-cover">
-             <img
-                src={book.cover}
-               alt={book.title}
-               className="book-cover-image"  />
-              </div>
+                <div className="book-cover">
+                  <img
+                    src={book.cover}
+                    alt={book.title}
+                    className="book-cover-image"  />
+                </div>
                 {/* INFOS */}
                 <div className="book-info">
                   <h3 className="book-title">{book.title}</h3>
@@ -169,7 +166,7 @@ export default function App() {
                   Je suis Leina Sidi, écrivaine, consultante en marketing et communication,
                   philanthrope.
                 </p>
-                <p>Amusez-vous bien et n’hésitez pas à me faire un retour sur  mail sidinsumbuleina@gmail.com.</p>
+                <p>Amusez-vous bien et n’hésitez pas à me faire un retour sur mail sidinsumbuleina@gmail.com.</p>
               </div>
             </div>
           </section>
@@ -181,56 +178,58 @@ export default function App() {
         </div>
       )}
 
-      {/* LECTEUR PDF CORRIGÉ ET INTERACTIF */}
+      {/* LECTEUR PDF VERSION DÉFILANTE MODIFIÉE */}
       {selectedBook && (
-        <div className="pdf-viewer" style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: "#333" }}>
-          {/* HEADER PDF */}
-          <div className="viewer-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px 20px", backgroundColor: "#222", color: "#fff" }}>
+        <div className="pdf-viewer" style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: "#1a1a1a" }}>
+          {/* HEADER PDF CONFIGURÉ POUR RESTER FIXE EN HAUT */}
+          <div className="viewer-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px 20px", backgroundColor: "#222", color: "#fff", zIndex: 10 }}>
             <h2>{selectedBook.title}</h2>
             
-            {/* CONTRÔLES DE NAVIGATION */}
             {numPages && (
-              <div className="pdf-controls" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <button 
-                  disabled={pageNumber <= 1} 
-                  onClick={() => setPageNumber(pageNumber - 1)}
-                  style={{ padding: "5px 15px", cursor: "pointer" }}
-                >
-                  Précédent
-                </button>
-                <span>Page {pageNumber} sur {numPages}</span>
-                <button 
-                  disabled={pageNumber >= numPages} 
-                  onClick={() => setPageNumber(pageNumber + 1)}
-                  style={{ padding: "5px 15px", cursor: "pointer" }}
-                >
-                  Suivant
-                </button>
+              <div className="pdf-info-pages" style={{ color: "#aaa", fontSize: "14px" }}>
+                {numPages} pages au total (Défilez vers le bas)
               </div>
             )}
 
             <button
               className="close-btn"
               onClick={() => setSelectedBook(null)}
-              style={{ padding: "8px 16px", backgroundColor: "#e74c3c", color: "white", border: "none", cursor: "pointer", borderRadius: "4px" }}
+              style={{ padding: "8px 16px", backgroundColor: "#e74c3c", color: "white", border: "none", cursor: "pointer", borderRadius: "4px", fontWeight: "bold" }}
             >
               Fermer
             </button>
           </div>
 
-          {/* ZONE D'AFFICHAGE DU PDF */}
-          <div className="pdf-body" style={{ flex: 1, overflowY: "auto", display: "flex", justifyContent: "center", padding: "20px", backgroundColor: "#555" }}>
+          {/* ZONE DE DÉFILEMENT CONTINU (SCROLL VERTICAL) */}
+          <div className="pdf-body" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 10px", backgroundColor: "#333", gap: "20px", WebkitOverflowScrolling: "touch" }}>
             <Document
               file={selectedBook.fileUrl}
               onLoadSuccess={onDocumentLoadSuccess}
               onLoadError={(error) => console.error("Erreur de chargement du PDF :", error)}
-              loading={<div style={{ color: "white" }}>Chargement du document...</div>}
+              loading={<div style={{ color: "white", marginTop: "20px" }}>Chargement du document...</div>}
             >
-              <Page 
-                pageNumber={pageNumber} 
-                renderTextLayer={false} 
-                renderAnnotationLayer={false} 
-              />
+              {/* Génère automatiquement toutes les pages les unes sous les autres */}
+              {numPages &&
+                Array.from(new Array(numPages), (el, index) => (
+                  <div 
+                    key={`page_${index + 1}`} 
+                    style={{ 
+                      marginBottom: "15px", 
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.5)", 
+                      backgroundColor: "#fff",
+                      maxWidth: "100%" 
+                    }}
+                  >
+                    <Page 
+                      pageNumber={index + 1} 
+                      renderTextLayer={false} 
+                      renderAnnotationLayer={false} 
+                      // Permet d'adapter automatiquement la largeur sur mobile et desktop
+                      width={window.innerWidth > 650 ? 600 : window.innerWidth - 30}
+                    />
+                  </div>
+                ))
+              }
             </Document>
           </div>
         </div>
