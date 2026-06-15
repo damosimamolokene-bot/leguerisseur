@@ -187,7 +187,7 @@ export default function App() {
             
             {numPages && (
               <div className="pdf-info-pages" style={{ color: "#aaa", fontSize: "14px" }}>
-                {numPages} pages au total (Défilez vers le bas)
+                {numPages} pages au total 
               </div>
             )}
 
